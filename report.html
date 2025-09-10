@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Report</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #28a745;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    .container {
+      width: 90%;
+      margin: 40px auto;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    button.download-btn {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button.download-btn:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Payment Report</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Amount (NGN)</th>
+          <th>Date</th>
+          <th>Receipt</th>
+        </tr>
+      </thead>
+      <tbody id="reportTable"></tbody>
+    </table>
+  </div>
+
+  <!-- ✅ jsPDF CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    function loadPayments() {
+      let payments = JSON.parse(localStorage.getItem("payments")) || [];
+      let tableBody = document.getElementById("reportTable");
+
+      payments.forEach((pay, index) => {
+        let row = `<tr>
+          <td>${pay.reference}</td>
+          <td>${pay.name}</td>
+          <td>${pay.email}</td>
+          <td>${pay.amount}</td>
+          <td>${pay.date}</td>
+          <td><button class="download-btn" onclick="downloadReceipt(${index})">Download</button></td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    async function downloadReceipt(index) {
+      const { jsPDF } = window.jspdf;
+      let payments = JSON.parse(localStorage.getItem("payments")) || [];
+      let pay = payments[index];
+
+      const doc = new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Payment Receipt", 70, 20);
+
+      doc.setFontSize(12);
+      doc.text(`Reference: ${pay.reference}`, 20, 40);
+      doc.text(`Name: ${pay.name}`, 20, 50);
+      doc.text(`Email: ${pay.email}`, 20, 60);
+      doc.text(`Amount: NGN ${pay.amount}`, 20, 70);
+      doc.text(`Date: ${pay.date}`, 20, 80);
+
+      doc.setFontSize(10);
+      doc.text("Thank you for your payment!", 20, 100);
+
+      doc.save(`receipt_${pay.reference}.pdf`);
+    }
+
+    window.onload = loadPayments;
+  </script>
+</body>
+</html>

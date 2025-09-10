@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paystack Payment Form</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="payment-form">
+    <h2>Pay with Paystack</h2>
+    <form id="paymentForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email-address" required />
+      </div>
+      <div class="form-group">
+        <label for="amount">Amount (NGN)</label>
+        <input type="number" id="amount" required />
+      </div>
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="first-name" required />
+      </div>
+      <button type="submit">Pay Now</button>
+    </form>
+  </div>
+
+  <!-- ✅ Paystack Inline Script -->
+  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <script>
+    const paymentForm = document.getElementById("paymentForm");
+    paymentForm.addEventListener("submit", payWithPaystack, false);
+  
+    function payWithPaystack(e) {
+      e.preventDefault();
+  
+      let handler = PaystackPop.setup({
+        key: "pk_test_fe5a1f56266f240778d108ce1164362e861b509a", // ✅ Replace with your Test Public Key
+        email: document.getElementById("email-address").value,
+        amount: document.getElementById("amount").value * 100, // amount in kobo
+        currency: "NGN",
+        ref: "REF" + Math.floor((Math.random() * 1000000000) + 1),
+        metadata: {
+          custom_fields: [
+            {
+              display_name: "Full Name",
+              variable_name: "full_name",
+              value: document.getElementById("first-name").value
+            }
+          ]
+        },
+        callback: function(response) {
+          const payment = {
+            reference: response.reference,
+            email: document.getElementById("email-address").value,
+            amount: document.getElementById("amount").value,
+            name: document.getElementById("first-name").value,
+            date: new Date().toLocaleString()
+          };
+  
+          // Save to localStorage
+          let payments = JSON.parse(localStorage.getItem("payments")) || [];
+          payments.push(payment);
+          localStorage.setItem("payments", JSON.stringify(payments));
+  
+          // ✅ Redirect to report page
+          window.location.href = "report.html";
+        },
+        onClose: function() {
+          alert("Payment cancelled.");
+        }
+      });
+      handler.openIframe();
+    }
+  </script>
+  
+</body>
+</html>
